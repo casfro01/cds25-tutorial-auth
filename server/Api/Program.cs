@@ -1,9 +1,11 @@
 using Api.Etc;
 using Api.Etc.NSwag;
+using Api.Security;
 using Api.Services;
 using DataAccess;
 using DataAccess.Entities;
 using DataAccess.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -40,6 +42,8 @@ public class Program
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
         );
         builder.Services.AddScoped<DbSeeder>();
+        // Argon2id, scrypt and becrypt are better algorithms, but require 3rd party libraries
+        builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
         // Repositories
         builder.Services.AddScoped<IRepository<User>, UserRepository>();
@@ -49,6 +53,7 @@ public class Program
         // Services
         builder.Services.AddScoped<IBlogService, BlogService>();
         builder.Services.AddScoped<IDraftService, DraftService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
 
         builder.Services.AddControllers();
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

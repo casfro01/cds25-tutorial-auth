@@ -1,4 +1,4 @@
-using System.Security.Authentication;
+using Api.Etc;
 using Api.Models.Dtos.Requests;
 using Api.Services;
 using DataAccess.Entities;
@@ -61,7 +61,7 @@ public class AuthServiceTest
     {
         await Assert
             .That(() => sut.Authenticate(new LoginRequest("invalid", "fakepassword")))
-            .Throws<AuthenticationException>();
+            .Throws<AuthenticationError>();
     }
 
     [Test]
@@ -69,6 +69,6 @@ public class AuthServiceTest
     {
         await Assert
             .That(() => sut.Authenticate(new LoginRequest("user1@example.com", "invalid")))
-            .Throws<AuthenticationException>();
+            .Throws<AuthenticationError>();
     }
 }

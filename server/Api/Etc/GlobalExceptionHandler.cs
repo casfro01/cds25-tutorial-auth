@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Security.Authentication;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,8 +18,8 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
         var status = exception switch
         {
             ValidationException => StatusCodes.Status400BadRequest,
-            AuthenticationException => StatusCodes.Status401Unauthorized,
-            UnauthorizedAccessException => StatusCodes.Status403Forbidden,
+            AuthenticationError => StatusCodes.Status401Unauthorized,
+            ForbiddenError => StatusCodes.Status403Forbidden,
             _ => StatusCodes.Status500InternalServerError,
         };
         httpContext.Response.StatusCode = status;
@@ -34,6 +33,7 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
             };
             await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
         }
+
         return true;
     }
 }

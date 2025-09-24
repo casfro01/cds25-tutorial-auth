@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http.Json;
-using System.Security.Authentication;
 using Api;
+using Api.Etc;
 using Api.Models.Dtos.Requests;
 using Api.Models.Dtos.Responses;
 using Api.Services;
@@ -28,7 +28,7 @@ public class AuthControllerTest
         // Arrange
         var mock = new Mock<IAuthService>();
         var requestBody = new LoginRequest("", "");
-        using var factory = CreateWebApplicationFactory(mock.Object);
+        await using var factory = CreateWebApplicationFactory(mock.Object);
         var client = factory.CreateClient();
 
         // Act
@@ -46,7 +46,7 @@ public class AuthControllerTest
         var requestBody = new LoginRequest("user@example.com", "secret");
         mock.Setup(x => x.Authenticate(requestBody))
             .Returns(new AuthUserInfo(Id: "1", UserName: "User1", Role: Role.Reader));
-        using var factory = CreateWebApplicationFactory(mock.Object);
+        await using var factory = CreateWebApplicationFactory(mock.Object);
         var client = factory.CreateClient();
 
         // Act
@@ -62,8 +62,8 @@ public class AuthControllerTest
         // Arrange
         var mock = new Mock<IAuthService>();
         var requestBody = new LoginRequest("user@example.com", "secret");
-        mock.Setup(x => x.Authenticate(requestBody)).Throws<AuthenticationException>();
-        using var factory = CreateWebApplicationFactory(mock.Object);
+        mock.Setup(x => x.Authenticate(requestBody)).Throws<AuthenticationError>();
+        await using var factory = CreateWebApplicationFactory(mock.Object);
         var client = factory.CreateClient();
 
         // Act
@@ -79,7 +79,7 @@ public class AuthControllerTest
         // Arrange
         var mock = new Mock<IAuthService>();
         var requestBody = new RegisterRequest(Email: "invalid_email", "", "", "");
-        using var factory = CreateWebApplicationFactory(mock.Object);
+        await using var factory = CreateWebApplicationFactory(mock.Object);
         var client = factory.CreateClient();
 
         // Act
@@ -100,7 +100,7 @@ public class AuthControllerTest
             Password: "secret",
             Name: "User"
         );
-        using var factory = CreateWebApplicationFactory(mock.Object);
+        await using var factory = CreateWebApplicationFactory(mock.Object);
         var client = factory.CreateClient();
 
         // Act
@@ -123,7 +123,7 @@ public class AuthControllerTest
         );
         mock.Setup(x => x.Register(requestBody))
             .ReturnsAsync(new AuthUserInfo(Id: "1", UserName: "User1", Role: Role.Reader));
-        using var factory = CreateWebApplicationFactory(mock.Object);
+        await using var factory = CreateWebApplicationFactory(mock.Object);
         var client = factory.CreateClient();
 
         // Act
@@ -145,7 +145,7 @@ public class AuthControllerTest
             Name: "User"
         );
         mock.Setup(x => x.Register(requestBody)).Throws<ValidationException>();
-        using var factory = CreateWebApplicationFactory(mock.Object);
+        await using var factory = CreateWebApplicationFactory(mock.Object);
         var client = factory.CreateClient();
 
         // Act

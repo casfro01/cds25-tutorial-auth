@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Authentication;
 using System.Security.Claims;
+using Api.Etc;
 using Api.Mappers;
 using Api.Models.Dtos.Requests;
 using Api.Models.Dtos.Responses;
@@ -44,7 +45,7 @@ public class AuthService(
             _logger.LogError("Authenticate error: {Message}", e);
         }
 
-        throw new AuthenticationException("Invalid credentials!");
+        throw new AuthenticationError();
     }
 
     public async Task<AuthUserInfo> Register(RegisterRequest request)

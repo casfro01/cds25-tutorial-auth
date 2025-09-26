@@ -2,7 +2,7 @@
 using DataAccess.Entities;
 using Microsoft.AspNetCore.Identity;
 
-namespace Api.Security;
+namespace Api.security;
 
 public class NSecArgon2idPasswordHasher : IPasswordHasher<User>
 {

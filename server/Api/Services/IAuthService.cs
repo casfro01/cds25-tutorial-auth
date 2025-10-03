@@ -1,4 +1,5 @@
-﻿using Api.Models.Dtos.Requests;
+﻿using System.Security.Claims;
+using Api.Models.Dtos.Requests;
 using Api.Models.Dtos.Responses;
 
 namespace Api.Services;
@@ -7,4 +8,6 @@ public interface IAuthService
 {
     AuthUserInfo Authenticate(LoginRequest request);
     Task<AuthUserInfo> Register(RegisterRequest request);
+    
+    AuthUserInfo? GetUserInfo(ClaimsPrincipal principal);
 }

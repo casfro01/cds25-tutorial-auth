@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Security.Authentication;
+using System.Security.Claims;
 using Api.Etc;
 using Api.Mappers;
 using Api.Models.Dtos.Requests;
 using Api.Models.Dtos.Responses;
+using Api.Security;
 using DataAccess.Entities;
 using DataAccess.Repositories;
 using Microsoft.AspNetCore.Identity;
@@ -51,5 +53,15 @@ public class AuthService(
         newUser.PasswordHash = passwordHasher.HashPassword(newUser, request.Password);
         await userRepository.Add(newUser);
         return newUser.ToDto();
+    }
+    
+    public AuthUserInfo? GetUserInfo(ClaimsPrincipal principal)
+    {
+        var userId = principal.GetUserId();
+        return userRepository
+            .Query()
+            .Where(user => user.Id == userId)
+            .SingleOrDefault()
+            ?.ToDto();
     }
 }

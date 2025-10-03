@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Security.Authentication;
 using Api.Etc;
 using Api.Mappers;
 using Api.Models.Dtos.Requests;
@@ -17,14 +18,22 @@ public class AuthService(
 {
     public AuthUserInfo Authenticate(LoginRequest request)
     {
-        var lars = userRepository.Query().First(u => u.Email == request.Email);
-        if (passwordHasher.VerifyHashedPassword(lars, lars.PasswordHash, request.Password) ==
-            PasswordVerificationResult.Failed) {
-            logger.LogInformation("Fail attempt to log in");
+        try
+        {
+            var lars = userRepository.Query().First(u => u.Email == request.Email);
+            if (passwordHasher.VerifyHashedPassword(lars, lars.PasswordHash, request.Password) ==
+                PasswordVerificationResult.Failed)
+            {
+                logger.LogInformation("Fail attempt to log in");
+                throw new AuthenticationError();
+            }
+
+            return new AuthUserInfo(lars.Id, lars.UserName, lars.Role);
+        }
+        catch (InvalidOperationException e)
+        {
             throw new AuthenticationError();
         }
-
-        return new AuthUserInfo(lars.Id, lars.UserName, lars.Role);
     }
 
     public async Task<AuthUserInfo> Register(RegisterRequest request)

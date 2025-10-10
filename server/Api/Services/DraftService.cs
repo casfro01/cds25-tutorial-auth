@@ -1,37 +1,38 @@
+using System.Security.Claims;
+using Api.Security;
 using DataAccess.Repositories;
-using Entities = DataAccess.Entities;
-using Requests = Api.Models.Dtos.Requests;
-using Responses = Api.Models.Dtos.Responses;
+
+namespace Api.Services;
 
 public interface IDraftService
 {
-    Responses.DraftDetail GetById(long id);
-    IEnumerable<Responses.Draft> List();
-    Task<long> Create(Requests.DraftFormData data);
-    Task Update(long id, Requests.DraftFormData data);
+    Models.Dtos.Responses.DraftDetail GetById(long id);
+    IEnumerable<Models.Dtos.Responses.Draft> List();
+    Task<long> Create(ClaimsPrincipal claims, Models.Dtos.Requests.DraftFormData data);
+    Task Update(ClaimsPrincipal claims, long id, Models.Dtos.Requests.DraftFormData data);
     Task Delete(long id);
 }
 
 public class DraftService(
-    IRepository<Entities.Post> _postRepository,
-    IRepository<Entities.User> _userRepository
+    IRepository<DataAccess.Entities.Post> _postRepository,
+    IRepository<DataAccess.Entities.User> _userRepository
 ) : IDraftService
 {
     public static string[] AllowedRoles => [Role.Admin, Role.Editor];
 
-    public Responses.DraftDetail GetById(long id)
+    public Models.Dtos.Responses.DraftDetail GetById(long id)
     {
         var post = _postRepository.Query().Single(x => x.Id == id);
         var user = _userRepository.Query().Single(x => x.Id == post.AuthorId);
-        return new Responses.DraftDetail(
+        return new Models.Dtos.Responses.DraftDetail(
             Id: post.Id,
             Title: post.Title,
             Content: post.Content,
-            Author: new Responses.Writer(user.Id, user.UserName!)
+            Author: new Models.Dtos.Responses.Writer(user.Id, user.UserName!)
         );
     }
 
-    public IEnumerable<Responses.Draft> List()
+    public IEnumerable<Models.Dtos.Responses.Draft> List()
     {
         return _postRepository
             .Query()
@@ -42,21 +43,22 @@ public class DraftService(
                 user => user.Id,
                 (post, user) => new { post, user }
             )
-            .Select(x => new Responses.Draft(
+            .Select(x => new Models.Dtos.Responses.Draft(
                 x.post.Id,
                 x.post.Title,
-                new Responses.Writer(x.user.Id, x.user!.UserName!)
+                new Models.Dtos.Responses.Writer(x.user.Id, x.user!.UserName!)
             ))
             .ToArray();
     }
 
-    public async Task<long> Create(Requests.DraftFormData data)
+    public async Task<long> Create(ClaimsPrincipal claims, Models.Dtos.Requests.DraftFormData data)
     {
-        var post = new Entities.Post
+        var currentUserId = claims.GetUserId();
+        var post = new DataAccess.Entities.Post
         {
             Title = data.Title,
             Content = data.Content,
-            AuthorId = null, // TODO fix
+            AuthorId = currentUserId,
             PublishedAt = data.Publish ?? false ? DateTime.UtcNow : null,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -65,9 +67,13 @@ public class DraftService(
         return post.Id;
     }
 
-    public async Task Update(long id, Requests.DraftFormData data)
+    public async Task Update(ClaimsPrincipal claims, long id, Models.Dtos.Requests.DraftFormData data)
     {
-        var post = _postRepository.Query().Single(x => x.Id == id);
+        var currentUserId = claims.GetUserId();
+        var post = _postRepository
+            .Query()
+            .Where(x => x.AuthorId == currentUserId)
+            .Single(x => x.Id == id);
         post.Title = data.Title;
         post.Content = data.Content;
         post.UpdatedAt = DateTime.UtcNow;

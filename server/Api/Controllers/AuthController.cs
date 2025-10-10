@@ -2,6 +2,7 @@ using Api.Models.Dtos.Requests;
 using Api.Models.Dtos.Responses;
 using Api.Security;
 using Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -12,6 +13,7 @@ public class AuthController(IAuthService service, ITokenService tokenService) : 
 {
     [HttpPost]
     [Route("login")]
+    [AllowAnonymous]
     public async Task<LoginResponse> Login([FromBody] LoginRequest request)
     {
         var userInfo = service.Authenticate(request);
@@ -21,6 +23,7 @@ public class AuthController(IAuthService service, ITokenService tokenService) : 
 
     [HttpPost]
     [Route("register")]
+    [AllowAnonymous]
     public async Task<RegisterResponse> Register([FromBody] RegisterRequest request)
     {
         var userInfo = await service.Register(request);

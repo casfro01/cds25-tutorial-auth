@@ -1,11 +1,15 @@
+using System.Security.Claims;
 using Api.Models.Dtos.Requests;
 using Api.Models.Dtos.Responses;
+using Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [ApiController]
 [Route("api/draft")]
+[Authorize(Roles = $"{Role.Admin},{Role.Editor}")]
 public class DraftController(IDraftService service) : ControllerBase
 {
     private readonly IDraftService service = service;
@@ -16,7 +20,8 @@ public class DraftController(IDraftService service) : ControllerBase
 
     [HttpPost]
     [Route("")]
-    public async Task<long> Create(DraftFormData data) => await service.Create(data);
+    [Authorize(Roles = Role.Editor)]
+    public async Task<long> Create(ClaimsPrincipal claims, DraftFormData data) => await service.Create(claims, data);
 
     [HttpGet]
     [Route("{id}")]
@@ -24,7 +29,8 @@ public class DraftController(IDraftService service) : ControllerBase
 
     [HttpPut]
     [Route("{id}")]
-    public async Task Update(long id, DraftFormData data) => await service.Update(id, data);
+    [Authorize(Roles = Role.Editor)]
+    public async Task Update(long id, DraftFormData data) => await service.Update(HttpContext.User, id, data);
 
     [HttpDelete]
     [Route("{id}")]
